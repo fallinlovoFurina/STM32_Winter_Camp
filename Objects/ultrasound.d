@@ -2,7 +2,7 @@
 .\objects\ultrasound.o: Ultrasound.h
 .\objects\ultrasound.o: .\start\stm32f10x.h
 .\objects\ultrasound.o: .\start\core_cm3.h
-.\objects\ultrasound.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\ultrasound.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 .\objects\ultrasound.o: .\start\system_stm32f10x.h
 .\objects\ultrasound.o: .\user\stm32f10x_conf.h
 .\objects\ultrasound.o: .\library\stm32f10x_adc.h
