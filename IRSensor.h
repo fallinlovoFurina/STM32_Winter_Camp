@@ -13,8 +13,8 @@
 #define RED6_PIN       GPIO_Pin_12 // RED6 -> PA12
 
 // 传感器返回值定义
-#define IR_HAVE_OBSTACLE  0   // Detected obstacle
-#define IR_NO_OBSTACLE    1   // No obstacle detected
+#define IR_HAVE_OBSTACLE  1   // Detected obstacle
+#define IR_NO_OBSTACLE    0   // No obstacle detected
 
 // 函数声明
 void IRSensor_Init(void);

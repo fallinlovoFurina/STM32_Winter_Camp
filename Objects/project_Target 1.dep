@@ -67,7 +67,7 @@ I (.\library\stm32f10x_usart.h)(0x6982C801)
 I (.\library\stm32f10x_wwdg.h)(0x6982C801)
 I (.\library\misc.h)(0x6982C801)
 F (.\user\stm32f10x_it.h)(0x6982C801)()
-F (.\main.c)(0x69859E70)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
+F (.\main.c)(0x6985C8B7)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
 I (.\start\stm32f10x.h)(0x6982C801)
 I (.\start\core_cm3.h)(0x6982C801)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x588B8344)
@@ -97,7 +97,7 @@ I (.\library\stm32f10x_usart.h)(0x6982C801)
 I (.\library\stm32f10x_wwdg.h)(0x6982C801)
 I (.\library\misc.h)(0x6982C801)
 I (delay.h)(0x6982C801)
-I (IRSensor.h)(0x6984A6A1)
+I (IRSensor.h)(0x6982C801)
 I (motor.h)(0x6982C801)
 I (PID.h)(0x6982C801)
 I (Ultrasound.h)(0x6982C801)
@@ -938,7 +938,7 @@ I (OLED_Font.h)(0x6982C801)
 I (delay.h)(0x6982C801)
 F (.\oled.h)(0x6982C801)()
 F (.\oled_Font.h)(0x6982C801)()
-F (.\motor.c)(0x69859E9B)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\motor.o --omf_browse .\objects\motor.crf --depend .\objects\motor.d)
+F (.\motor.c)(0x6985C8A6)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\motor.o --omf_browse .\objects\motor.crf --depend .\objects\motor.d)
 I (motor.h)(0x6982C801)
 I (.\start\stm32f10x.h)(0x6982C801)
 I (.\start\core_cm3.h)(0x6982C801)
@@ -1003,7 +1003,7 @@ I (.\library\misc.h)(0x6982C801)
 I (delay.h)(0x6982C801)
 F (.\Ultrasound.h)(0x6982C801)()
 F (.\IRSensor.c)(0x6982C801)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\irsensor.o --omf_browse .\objects\irsensor.crf --depend .\objects\irsensor.d)
-I (IRSensor.h)(0x6984A6A1)
+I (IRSensor.h)(0x6982C801)
 I (.\start\stm32f10x.h)(0x6982C801)
 I (.\start\core_cm3.h)(0x6982C801)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x588B8344)
@@ -1033,8 +1033,8 @@ I (.\library\stm32f10x_usart.h)(0x6982C801)
 I (.\library\stm32f10x_wwdg.h)(0x6982C801)
 I (.\library\misc.h)(0x6982C801)
 I (delay.h)(0x6982C801)
-F (.\IRSensor.h)(0x6984A6A1)()
-F (.\PID.c)(0x6984A116)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\pid.o --omf_browse .\objects\pid.crf --depend .\objects\pid.d)
+F (.\IRSensor.h)(0x6982C801)()
+F (.\PID.c)(0x6982C801)(--c99 -c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\car -I E:\Keil\ARM\ARMCC\include -I .\start -I .\library -I .\user -I .\-I.\RTE\_Target_1-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\2.4.1\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="524" -DSTM32F10X_LD -DSTM32F103C6 -DUSE_STDPERIPH_DRIVER-o .\objects\pid.o --omf_browse .\objects\pid.crf --depend .\objects\pid.d)
 I (PID.h)(0x6982C801)
 I (.\start\stm32f10x.h)(0x6982C801)
 I (.\start\core_cm3.h)(0x6982C801)

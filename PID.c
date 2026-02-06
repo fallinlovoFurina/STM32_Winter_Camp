@@ -43,8 +43,8 @@ float PID_Calc(PID_TypeDef *pid, float target, float actual)
     // PID output calculation
     pid->Output = pid->Kp * pid->Error + pid->Ki * pid->SumError + pid->Kd * (pid->Error - pid->LastError);
     
-    // Output limit (0~90, match PWM range)
-    if(pid->Output > 90) pid->Output = 90;  // 输出上限 - 根据实际情况调整
+    // Output limit (0~100, match PWM range)
+    if(pid->Output > 100) pid->Output = 100;  // 输出上限 - 根据实际情况调整
     if(pid->Output < 0) pid->Output = 0;  // 输出下限 - 根据实际情况调整
     
     // Save current error as last error for next calculation

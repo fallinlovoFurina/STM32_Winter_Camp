@@ -25,12 +25,14 @@ static void PWM_Init(uint16_t arr, uint16_t psc)
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(MOTOR_PORT, &GPIO_InitStruct);
 
-    // 配置TT1编码器引脚：推挽输出模式
+    // 配置TT1编码器引脚：上拉输入模式
     GPIO_InitStruct.GPIO_Pin = MOTOR_TT1_A | MOTOR_TT1_B;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU; // 上拉输入，用于读取编码器信号
     GPIO_Init(MOTOR_TT1_PORT, &GPIO_InitStruct);
 
-    // 配置TT2编码器引脚：推挽输出模式
+    // 配置TT2编码器引脚：上拉输入模式
     GPIO_InitStruct.GPIO_Pin = MOTOR_TT2_A | MOTOR_TT2_B;
+    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU; // 上拉输入，用于读取编码器信号
     GPIO_Init(MOTOR_TT2_PORT, &GPIO_InitStruct);
 
     // 配置定时器3时间参数
@@ -65,17 +67,17 @@ void Motor_Init(void)
 
 void Motor_Forward(void)
 {
-    // 设置电机正转方向电平（左电机正转，右电机反转）
+    // 设置电机正转方向电平
     GPIO_SetBits(MOTOR_PORT, IN1_PIN);
     GPIO_ResetBits(MOTOR_PORT, IN2_PIN);
-    GPIO_ResetBits(MOTOR_PORT, IN3_PIN);
-    GPIO_SetBits(MOTOR_PORT, IN4_PIN);
+    GPIO_SetBits(MOTOR_PORT, IN3_PIN);
+    GPIO_ResetBits(MOTOR_PORT, IN4_PIN);
 
-    // 通过PID计算，设置直线行驶PWM值（左电机90，右电机70）
-    float left_pwm = PID_Calc(&PID_MotorLeft, 90, TIM_GetCapture1(MOTOR_TIM));   // 目标PWM值 - 左电机（TT1）最大速度
-    float right_pwm = PID_Calc(&PID_MotorRight, 90, TIM_GetCapture2(MOTOR_TIM)); // 目标PWM值 - 右电机（TT2）较低速度
+    // 直接使用目标PWM值（暂时不使用PID控制）
+    float left_pwm = 99;  // 目标PWM值 - 最大速度
+    float right_pwm = 99; // 目标PWM值 - 最大速度
 
-    // PWM限幅（0~99），允许加速时超过90
+    // PWM限幅（0~99）
     if (left_pwm > 99)
         left_pwm = 99;
     if (left_pwm < 0)
@@ -94,11 +96,11 @@ void Motor_Left(void)
 {
     // 设置电机转向电平（左电机停，右电机转）
     GPIO_ResetBits(MOTOR_PORT, IN1_PIN | IN2_PIN);
-    GPIO_ResetBits(MOTOR_PORT, IN3_PIN);
-    GPIO_SetBits(MOTOR_PORT, IN4_PIN);
+    GPIO_SetBits(MOTOR_PORT, IN3_PIN);
+    GPIO_ResetBits(MOTOR_PORT, IN4_PIN);
 
-    // 通过PID计算，设置转向速度PWM=50
-    float right_pwm = PID_Calc(&PID_MotorRight, 50, TIM_GetCapture2(MOTOR_TIM)); // 目标PWM值 - 根据实际情况调整
+    // 直接使用目标PWM值（暂时不使用PID控制）
+    float right_pwm = 50; // 目标PWM值 - 根据实际情况调整
 
     // PWM限幅
     if (right_pwm > 99)
@@ -118,8 +120,8 @@ void Motor_Right(void)
     GPIO_ResetBits(MOTOR_PORT, IN2_PIN);
     GPIO_ResetBits(MOTOR_PORT, IN3_PIN | IN4_PIN);
 
-    // 通过PID计算，设置转向速度PWM=20
-    float left_pwm = PID_Calc(&PID_MotorLeft, 20, TIM_GetCapture1(MOTOR_TIM)); // 目标PWM值 - 根据实际情况调整
+    // 直接使用目标PWM值（暂时不使用PID控制）
+    float left_pwm = 50; // 目标PWM值 - 根据实际情况调整
 
     // PWM限幅
     if (left_pwm > 99)

@@ -1,4 +1,4 @@
-;#<FEEDBACK># ARM Linker, 5060528: Last Updated: Fri Feb 06 15:56:34 2026
+;#<FEEDBACK># ARM Linker, 5060528: Last Updated: Fri Feb 06 18:56:15 2026
 ;VERSION 0.2
 ;FILE core_cm3.o
 __REV16 <= USED 0
@@ -34,6 +34,7 @@ OLED_ShowNum <= USED 0
 OLED_ShowSignedNum <= USED 0
 OLED_ShowString <= USED 0
 ;FILE pid.o
+PID_Calc <= USED 0
 ;FILE pwm.o
 PWM_Init <= USED 0
 PWM_SetCompare1 <= USED 0
@@ -416,6 +417,8 @@ TIM_ForcedOC2Config <= USED 0
 TIM_ForcedOC3Config <= USED 0
 TIM_ForcedOC4Config <= USED 0
 TIM_GenerateEvent <= USED 0
+TIM_GetCapture1 <= USED 0
+TIM_GetCapture2 <= USED 0
 TIM_GetCapture3 <= USED 0
 TIM_GetCapture4 <= USED 0
 TIM_GetFlagStatus <= USED 0
