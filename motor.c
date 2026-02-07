@@ -42,12 +42,12 @@ void Motor_Init(void)
 void Motor_Forward(float left_pwm, float right_pwm)
 {
     // 设置DRV8833正转电平
-    GPIO_SetBits(MOTOR_PORT, IN1_PIN);
-    GPIO_ResetBits(MOTOR_PORT, IN2_PIN);
-    
+    GPIO_ResetBits(MOTOR_PORT, IN1_PIN);
+    GPIO_SetBits(MOTOR_PORT, IN2_PIN);
+
     GPIO_ResetBits(MOTOR_PORT, IN3_PIN);
     GPIO_SetBits(MOTOR_PORT, IN4_PIN);
-    
+
     // PWM限幅，确保在0-99范围内
     if (left_pwm > 99)
         left_pwm = 99;
@@ -89,9 +89,9 @@ void Motor_Right(float left_pwm)
     GPIO_ResetBits(MOTOR_PORT, IN4_PIN);
     PWM_SetCompare2(0);
 
-    // 左电机正转：IN1=1，IN2=0
-    GPIO_SetBits(MOTOR_PORT, IN1_PIN);
-    GPIO_ResetBits(MOTOR_PORT, IN2_PIN);
+    // 左电机正转：IN1=0，IN2=1
+    GPIO_ResetBits(MOTOR_PORT, IN1_PIN);
+    GPIO_SetBits(MOTOR_PORT, IN2_PIN);
     if (left_pwm > 99)
         left_pwm = 99;
     if (left_pwm < 0)
