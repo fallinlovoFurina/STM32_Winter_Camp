@@ -17,16 +17,16 @@
 
 /************************ 核心配置 ************************/
 // 速度配置（0=刹车，1~99=转速）
-#define NORMAL_LEFT_SPEED 80.0f  // 左电机正常速度
-#define NORMAL_RIGHT_SPEED 80.0f // 右电机正常速度
+#define NORMAL_LEFT_SPEED 70.0f  // 左电机正常速度
+#define NORMAL_RIGHT_SPEED 60.0f // 右电机正常速度
 #define TURN_SPEED 50.0f         // 转向速度
 #define BACK_SPEED 50.0f         // 倒车速度
 #define SLOW_DOWN_RATIO 0.5f     // 超声减速比例
 
 // 超声阈值
-#define ULTRASONIC_STOP_DIST 1.0f // ≤1cm 停车
-#define ULTRASONIC_SLOW_DIST 5.0f // 5~1cm 减速
-#define ULTRASONIC_INVALID_CNT 2  // 超声无效计数阈值
+#define ULTRASONIC_STOP_DIST 15.0f // ≤15cm 停车并后退
+#define ULTRASONIC_SLOW_DIST 30.0f // 30~15cm 减速
+#define ULTRASONIC_INVALID_CNT 2   // 超声无效计数阈值
 
 /************************ 全局变量 ************************/
 uint8_t ultrasonic_invalid_count = 0; // 超声无效计数
@@ -211,21 +211,24 @@ int main(void)
             ultrasonic_invalid_count = 0;
             if (distance <= ULTRASONIC_STOP_DIST)
             {
-                ultra_stop = 1; // ≤1cm，停车
+                ultra_stop = 1; // ≤15cm，停车并后退
             }
             else if (distance > ULTRASONIC_STOP_DIST && distance <= ULTRASONIC_SLOW_DIST)
             {
-                ultra_slow = 1; // 5~1cm，减速
+                ultra_slow = 1; // 30~15cm，减速
             }
         }
 
         // 3.2 优先级避障逻辑（互斥触发，从高到低）
-        // 优先级1（最高）：超声停车触发（距障碍≤1cm 或 超声无返回值）
+        // 优先级1（最高）：超声停车触发（距障碍≤15cm 或 超声无返回值）
         if (ultra_stop)
         {
             Motor_Stop();
+            Delay_ms(200);
+            move_back(10); // 后退10cm避开障碍物
+            Delay_ms(100);
         }
-        // 优先级2：超声减速触发（5~1cm）+ RED1+RED2同触 + RED3/4/5/6均未触
+        // 优先级2：超声减速触发（30~15cm）+ RED1+RED2同触 + RED3/4/5/6均未触
         else if (ultra_slow && red1 && red2 && !red3 && !red4 && !red5 && !red6)
         {
             Motor_Stop();
@@ -236,7 +239,7 @@ int main(void)
             turn_right_90();
             resume_normal();
         }
-        // 优先级3：超声减速触发（5~1cm）+ RED1单触 + RED2/3/4/5/6均未触
+        // 优先级3：超声减速触发（30~15cm）+ RED1单触 + RED2/3/4/5/6均未触
         else if (ultra_slow && red1 && !red2 && !red3 && !red4 && !red5 && !red6)
         {
             move_back(3);
@@ -249,7 +252,7 @@ int main(void)
             turn_right_90();
             resume_normal();
         }
-        // 优先级4：超声减速触发（5~1cm）+ RED2单触 + RED1/3/4/5/6均未触
+        // 优先级4：超声减速触发（30~15cm）+ RED2单触 + RED1/3/4/5/6均未触
         else if (ultra_slow && !red1 && red2 && !red3 && !red4 && !red5 && !red6)
         {
             Motor_Stop();
@@ -294,12 +297,13 @@ int main(void)
 
             Motor_Forward(limit_pwm(left_speed), limit_pwm(right_speed));
         }
-        // 优先级7：超声减速触发（5~1cm）+ 无任何红外触发
+        // 优先级7：超声减速触发（30~15cm）+ 无任何红外触发
         else if (ultra_slow && !red1 && !red2 && !red3 && !red4 && !red5 && !red6)
         {
-            // 双电机减速50%，低速直行（仅减速不停车）
-            Motor_Forward(limit_pwm(NORMAL_LEFT_SPEED * SLOW_DOWN_RATIO),
-                          limit_pwm(NORMAL_RIGHT_SPEED * SLOW_DOWN_RATIO));
+            Motor_Stop();
+            Delay_ms(200);
+            move_back(10); // 后退10cm避开障碍物
+            Delay_ms(100);
         }
         // 优先级8（最低）：无任何触发条件
         else
