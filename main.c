@@ -171,9 +171,10 @@ int main(void)
                 ultrasonic_trigger = 1; // 进入减速区域（5~1cm）
             }
         }
-        else // 超声传感器无效读数
+        else // 超声传感器无效读数（无障碍物）
         {
-            ultrasonic_stop = 1; // 无效读数，触发停车
+            ultrasonic_stop = 0;    // 无效读数，不触发停车
+            ultrasonic_trigger = 0; // 无效读数，不触发减速
         }
 
         // 3. 执行主逻辑，按优先级从高到低处理（if-else if确保唯一执行路径）
@@ -357,7 +358,13 @@ int main(void)
          */
         else
         {
-            Motor_Forward(80.0f, 70.0f); // 正常直行（TT1=80, TT2=70）
+            // 调试：确保执行到这里
+            GPIO_SetBits(GPIOA, GPIO_Pin_0); // 点亮LED或其他指示
+            // 设置PWM值
+            PWM_SetCompare1(0);  // 左电机PWM=0
+            PWM_SetCompare2(70); // 右电机PWM=70
+            // 直接调用PWM_Task
+            PWM_Task();
         }
 
         // 运行PWM任务，生成软件PWM波形

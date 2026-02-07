@@ -64,9 +64,18 @@ void PWM_Task(void)
 	{
 		GPIO_SetBits(GPIOA, GPIO_Pin_8);
 	}
+	else
+	{
+		GPIO_ResetBits(GPIOA, GPIO_Pin_8); // ????????
+	}
+
 	if (pwm_compare2 > 0)
 	{
 		GPIO_SetBits(GPIOA, GPIO_Pin_9);
+	}
+	else
+	{
+		GPIO_ResetBits(GPIOA, GPIO_Pin_9); // ????????
 	}
 
 	// ???????
