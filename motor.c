@@ -77,7 +77,7 @@ void Motor_Forward(float left_pwm, float right_pwm)
     right_pwm = limit_pwm(right_pwm);
 
     PWM_SetCompare1((uint16_t)left_pwm);
-    PWM_SetCompare2((uint16_t)right_pwm);
+    PWM_SetCompare3((uint16_t)right_pwm);
 }
 
 void Motor_Back(float left_pwm, float right_pwm)
@@ -101,7 +101,7 @@ void Motor_Back(float left_pwm, float right_pwm)
     right_pwm = limit_pwm(right_pwm);
 
     PWM_SetCompare1((uint16_t)left_pwm);
-    PWM_SetCompare2((uint16_t)right_pwm);
+    PWM_SetCompare3((uint16_t)right_pwm);
 }
 
 void Motor_Left(float right_pwm)
@@ -122,14 +122,14 @@ void Motor_Left(float right_pwm)
     }
 
     right_pwm = limit_pwm(right_pwm);
-    PWM_SetCompare2((uint16_t)right_pwm);
+    PWM_SetCompare3((uint16_t)right_pwm);
 }
 
 void Motor_Right(float left_pwm)
 {
     GPIO_ResetBits(MOTOR_PORT, IN3_PIN);
     GPIO_ResetBits(MOTOR_PORT, IN4_PIN);
-    PWM_SetCompare2(0);
+    PWM_SetCompare3(0);
 
     if (motor_direction_config == MOTOR_DIRECTION_FORWARD)
     {
@@ -150,7 +150,7 @@ void Motor_Stop(void)
 {
     GPIO_ResetBits(MOTOR_PORT, IN1_PIN | IN2_PIN | IN3_PIN | IN4_PIN);
     PWM_SetCompare1(0);
-    PWM_SetCompare2(0);
+    PWM_SetCompare3(0);
 }
 
 void Motor_Left_Brake(void)
@@ -164,7 +164,7 @@ void Motor_Right_Brake(void)
 {
     GPIO_ResetBits(MOTOR_PORT, IN3_PIN);
     GPIO_ResetBits(MOTOR_PORT, IN4_PIN);
-    PWM_SetCompare2(0);
+    PWM_SetCompare3(0);
 }
 
 void Motor_MoveBack(float cm)

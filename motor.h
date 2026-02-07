@@ -31,8 +31,8 @@
 #define IR_PORT GPIOA
 #define RED1_PIN GPIO_Pin_4
 #define RED2_PIN GPIO_Pin_5
-// #define RED3_PIN GPIO_Pin_8
-// #define RED4_PIN GPIO_Pin_9
+#define RED3_PIN GPIO_Pin_8
+#define RED4_PIN GPIO_Pin_9
 #define RED5_PIN GPIO_Pin_11
 #define RED6_PIN GPIO_Pin_12
 
