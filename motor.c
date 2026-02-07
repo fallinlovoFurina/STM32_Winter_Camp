@@ -5,10 +5,9 @@
 #include "stm32f10x_rcc.h"
 #include "delay.h"
 
-/* * 硬件连接修正版:
- * 左电机 (A): PA0 (TIM2_CH1), PA1 (TIM2_CH2)
- * 右电机 (B): PA2 (TIM2_CH3), PA3 (TIM2_CH4)
- * 修正逻辑：全反向
+/* * 硬件连接最终确认:
+ * 左电机 (A): 实际连接在 PA2 (TIM2_CH3), PA3 (TIM2_CH4)
+ * 右电机 (B): 实际连接在 PA0 (TIM2_CH1), PA1 (TIM2_CH2)
  */
 
 // 限制PWM范围在 0-100
@@ -76,74 +75,74 @@ void Motor_Stop(void)
     TIM_SetCompare4(TIM2, 0);
 }
 
-// 【修正】前进：左轮(CH1转, CH2停)，右轮(CH3停, CH4转)
+// 【左右互换修正】前进
 void Motor_Forward(float left_pwm, float right_pwm)
 {
     left_pwm = limit_pwm(left_pwm);
     right_pwm = limit_pwm(right_pwm);
 
-    // 左轮前进
-    TIM_SetCompare1(TIM2, (uint16_t)left_pwm);
-    TIM_SetCompare2(TIM2, 0);
-
-    // 右轮前进
+    // 左轮 (现在由 CH3/CH4 控制) - 逻辑：CH3=0, CH4=PWM
     TIM_SetCompare3(TIM2, 0);
-    TIM_SetCompare4(TIM2, (uint16_t)right_pwm);
+    TIM_SetCompare4(TIM2, (uint16_t)left_pwm);
+
+    // 右轮 (现在由 CH1/CH2 控制) - 逻辑：CH1=PWM, CH2=0
+    TIM_SetCompare1(TIM2, (uint16_t)right_pwm);
+    TIM_SetCompare2(TIM2, 0);
 }
 
-// 【修正】后退：左轮(CH1停, CH2转)，右轮(CH3转, CH4停)
+// 【左右互换修正】后退
 void Motor_Back(float left_pwm, float right_pwm)
 {
     left_pwm = limit_pwm(left_pwm);
     right_pwm = limit_pwm(right_pwm);
 
-    // 左轮后退
-    TIM_SetCompare1(TIM2, 0);
-    TIM_SetCompare2(TIM2, (uint16_t)left_pwm);
-
-    // 右轮后退
-    TIM_SetCompare3(TIM2, (uint16_t)right_pwm);
+    // 左轮后退 (CH3=PWM, CH4=0)
+    TIM_SetCompare3(TIM2, (uint16_t)left_pwm);
     TIM_SetCompare4(TIM2, 0);
+
+    // 右轮后退 (CH1=0, CH2=PWM)
+    TIM_SetCompare1(TIM2, 0);
+    TIM_SetCompare2(TIM2, (uint16_t)right_pwm);
 }
 
-// 【修正】左转：左轮不动，右轮前进
+// 【左右互换修正】左转 (左轮停，右轮前)
 void Motor_Left(float right_pwm)
 {
     right_pwm = limit_pwm(right_pwm);
 
-    // 左轮停止
-    TIM_SetCompare1(TIM2, 0);
-    TIM_SetCompare2(TIM2, 0);
-
-    // 右轮前进
+    // 左轮停 (CH3/4)
     TIM_SetCompare3(TIM2, 0);
-    TIM_SetCompare4(TIM2, (uint16_t)right_pwm);
+    TIM_SetCompare4(TIM2, 0);
+
+    // 右轮前 (CH1/2)
+    TIM_SetCompare1(TIM2, (uint16_t)right_pwm);
+    TIM_SetCompare2(TIM2, 0);
 }
 
-// 【修正】右转：左轮前进，右轮不动
+// 【左右互换修正】右转 (左轮前，右轮停)
 void Motor_Right(float left_pwm)
 {
     left_pwm = limit_pwm(left_pwm);
 
-    // 左轮前进
-    TIM_SetCompare1(TIM2, (uint16_t)left_pwm);
-    TIM_SetCompare2(TIM2, 0);
-
-    // 右轮停止
+    // 左轮前 (CH3/4)
     TIM_SetCompare3(TIM2, 0);
-    TIM_SetCompare4(TIM2, 0);
-}
+    TIM_SetCompare4(TIM2, (uint16_t)left_pwm);
 
-void Motor_Left_Brake(void)
-{
+    // 右轮停 (CH1/2)
     TIM_SetCompare1(TIM2, 0);
     TIM_SetCompare2(TIM2, 0);
 }
 
-void Motor_Right_Brake(void)
+void Motor_Left_Brake(void)
 {
     TIM_SetCompare3(TIM2, 0);
     TIM_SetCompare4(TIM2, 0);
+}
+
+void Motor_Right_Brake(void)
+{
+    TIM_SetCompare1(TIM2, 0);
+    TIM_SetCompare2(TIM2, 0);
 }
 
 void Motor_MoveForward(float cm, float left_speed, float right_speed)
@@ -160,31 +159,31 @@ void Motor_MoveBack(float cm)
     Motor_Stop();
 }
 
-// 【修正】原地右转：左轮前进，右轮后退
+// 【左右互换修正】原地右转 (左轮前，右轮后)
 void Motor_TurnRight90(void)
 {
-    // 左轮前
-    TIM_SetCompare1(TIM2, (uint16_t)TURN_SPEED);
-    TIM_SetCompare2(TIM2, 0);
+    // 左轮前 (CH3=0, CH4=PWM)
+    TIM_SetCompare3(TIM2, 0);
+    TIM_SetCompare4(TIM2, (uint16_t)TURN_SPEED);
 
-    // 右轮后
-    TIM_SetCompare3(TIM2, (uint16_t)TURN_SPEED);
-    TIM_SetCompare4(TIM2, 0);
+    // 右轮后 (CH1=0, CH2=PWM)
+    TIM_SetCompare1(TIM2, 0);
+    TIM_SetCompare2(TIM2, (uint16_t)TURN_SPEED);
 
     Delay_ms(400);
     Motor_Stop();
 }
 
-// 【修正】原地左转：左轮后退，右轮前进
+// 【左右互换修正】原地左转 (左轮后，右轮前)
 void Motor_TurnLeft90(void)
 {
-    // 左轮后
-    TIM_SetCompare1(TIM2, 0);
-    TIM_SetCompare2(TIM2, (uint16_t)TURN_SPEED);
+    // 左轮后 (CH3=PWM, CH4=0)
+    TIM_SetCompare3(TIM2, (uint16_t)TURN_SPEED);
+    TIM_SetCompare4(TIM2, 0);
 
-    // 右轮前
-    TIM_SetCompare3(TIM2, 0);
-    TIM_SetCompare4(TIM2, (uint16_t)TURN_SPEED);
+    // 右轮前 (CH1=PWM, CH2=0)
+    TIM_SetCompare1(TIM2, (uint16_t)TURN_SPEED);
+    TIM_SetCompare2(TIM2, 0);
 
     Delay_ms(400);
     Motor_Stop();
@@ -194,7 +193,3 @@ void Motor_ResumeNormal(void)
 {
     Motor_Forward(NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
 }
-
-// 占位符
-// uint8_t IRSensor_Detect(...) { ... }
-// float Test_Distance(...) { ... }
