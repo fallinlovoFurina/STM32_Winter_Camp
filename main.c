@@ -1,174 +1,327 @@
+
 #include "stm32f10x.h"
 #include "stm32f10x_tim.h"
 #include "stm32f10x_gpio.h"
 #include "stm32f10x_rcc.h"
 #include "motor.h"
-#include "pwm.h"
 #include "IRSensor.h"
 #include "delay.h"
 #include "Ultrasound.h"
 
-#define ULTRASONIC_STOP_DIST 15.0f
-#define ULTRASONIC_SLOW_DIST 30.0f
-#define ULTRASONIC_INVALID_CNT 2
-#define SLOW_DOWN_RATIO 0.5f
+// ???????(5cm)
+#define ULTRASONIC_STOP_DIST 5.0f
+// ???????
+#define ULTRASONIC_INVALID_CNT 3
+// ????????
+#define WALL_ADJUST_SPEED 20.0f
 
+// ????????
 uint8_t ultrasonic_invalid_count = 0;
+
+// ???????
+uint8_t red1_state, red2_state, red5_state, red6_state;
+
+// ????
+void System_Init(void);
+void GPIO_Init_All(void);
+uint8_t Check_Ultrasonic_Stop(void);
+void Read_IR_Sensors(void);
+void Execute_Case1_3(void);
+void Execute_Case4(void);
+void Execute_Case5(void);
+void Adjust_Wall_Distance(void);
 
 int main(void)
 {
-    // TIM_TimeBaseInitTypeDef TIM_TimeBaseStruct;
-    // RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-    // TIM_TimeBaseStruct.TIM_Period = 0xFFFF;
-    // TIM_TimeBaseStruct.TIM_Prescaler = 71;
-    // TIM_TimeBaseStruct.TIM_ClockDivision = 0;
-    // TIM_TimeBaseStruct.TIM_CounterMode = TIM_CounterMode_Up;
-    // TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStruct);
-    // TIM_Cmd(TIM2, ENABLE);
+    // ?????
+    System_Init();
 
+    // ?????(??SysTick)
+    delay_init();
+
+    // ???GPIO
+    GPIO_Init_All();
+
+    // ????????
+    IRSensor_Init();
+
+    // ?????(TIM2)
     Motor_Init();
 
-    GPIO_InitTypeDef GPIO_InitStruct;
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_AFIO, ENABLE);
+    // ??????(TIM1)
+    Ultrasound_Init();
 
-    GPIO_InitStruct.GPIO_Pin = RED1_PIN | RED2_PIN | RED3_PIN | RED4_PIN;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(IR_PORT, &GPIO_InitStruct);
+    // ??1?,?????
+    Delay_ms(1000);
 
-    GPIO_InitStruct.GPIO_Pin = RED5_PIN | RED6_PIN;
-    GPIO_Init(IR_PORT, &GPIO_InitStruct);
+    // ????:??
+    Motor_Stop();
 
-    GPIO_InitStruct.GPIO_Pin = TRIG_PIN;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(ULTRASONIC_PORT, &GPIO_InitStruct);
-    GPIO_ResetBits(ULTRASONIC_PORT, TRIG_PIN);
-
-    GPIO_InitStruct.GPIO_Pin = ECHO_PIN;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_Init(ULTRASONIC_PORT, &GPIO_InitStruct);
-
+    // ???
     while (1)
     {
-        // uint8_t red1 = IRSensor_Detect(IR_PORT, RED1_PIN);
-        // uint8_t red2 = IRSensor_Detect(IR_PORT, RED2_PIN);
-        // uint8_t red3 = IRSensor_Detect(IR_PORT, RED3_PIN);
-        // uint8_t red4 = IRSensor_Detect(IR_PORT, RED4_PIN);
-        // uint8_t red5 = IRSensor_Detect(IR_PORT, RED5_PIN);
-        // uint8_t red6 = IRSensor_Detect(IR_PORT, RED6_PIN);
+        // ???????????
+        Read_IR_Sensors();
+        
+        // ???????????
+        uint8_t ultra_stop = Check_Ultrasonic_Stop();
+        
+        // ==================== ??1-5:??????? ====================
+        if (ultra_stop)
+        {
+            // ??1?
+            Motor_Stop();
+            Delay_ms(1000);
+            
+            // ??1: RED1+RED2?? + RED5/6???
+            if (red1_state == IR_HAVE_OBSTACLE && red2_state == IR_HAVE_OBSTACLE &&
+                red5_state == IR_NO_OBSTACLE && red6_state == IR_NO_OBSTACLE)
+            {
+                Execute_Case1_3(); // ????
+            }
+            // ??2: RED1+RED2?? + RED5??+RED6??
+            else if (red1_state == IR_HAVE_OBSTACLE && red2_state == IR_HAVE_OBSTACLE &&
+                     red5_state == IR_NO_OBSTACLE && red6_state == IR_HAVE_OBSTACLE)
+            {
+                Execute_Case1_3(); // ????
+            }
+            // ??3: RED1+RED2?? + RED6??+RED5??
+            else if (red1_state == IR_HAVE_OBSTACLE && red2_state == IR_HAVE_OBSTACLE &&
+                     red5_state == IR_HAVE_OBSTACLE && red6_state == IR_NO_OBSTACLE)
+            {
+                // ????
+                Delay_ms(200); // ??200ms
+                Motor_TurnRight90();
+                Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+                Motor_TurnRight90();
+            }
+            // ??4: RED1?? + RED2/5/6???
+            else if (red1_state == IR_HAVE_OBSTACLE && red2_state == IR_NO_OBSTACLE &&
+                     red5_state == IR_NO_OBSTACLE && red6_state == IR_NO_OBSTACLE)
+            {
+                Execute_Case4();
+            }
+            // ??5: RED2?? + RED1/5/6???
+            else if (red1_state == IR_NO_OBSTACLE && red2_state == IR_HAVE_OBSTACLE &&
+                     red5_state == IR_NO_OBSTACLE && red6_state == IR_NO_OBSTACLE)
+            {
+                Execute_Case5();
+            }
+            // ?????????:????????
+            else
+            {
+                Execute_Case1_3();
+            }
+            
+            // ?????????????
+            Motor_Forward(NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+        }
+        // ==================== ??6:RED1/RED2??? ====================
+        else if (red1_state == IR_NO_OBSTACLE && red2_state == IR_NO_OBSTACLE)
+        {
+            Adjust_Wall_Distance();
+        }
+        // ==================== ??7:??????? ====================
+        else
+        {
+            // ????
+            Motor_Forward(NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+        }
+        
+        // ????
+        Delay_ms(50);
+    }
+}
 
-        // float distance = Test_Distance();
-        // uint8_t ultra_stop = 0;
-        // uint8_t ultra_slow = 0;
+/**
+ * @brief  ?????
+ */
+void System_Init(void)
+{
+    // ???????(??????)
+    SystemInit();
+    
+    // ??NVIC?????
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+}
 
-        // if (distance == -1.0f)
-        // {
-        //     ultrasonic_invalid_count++;
-        //     if (ultrasonic_invalid_count >= ULTRASONIC_INVALID_CNT)
-        //     {
-        //         ultra_stop = 1;
-        //     }
-        // }
-        // else
-        // {
-        //     ultrasonic_invalid_count = 0;
-        //     if (distance <= ULTRASONIC_STOP_DIST)
-        //     {
-        //         ultra_stop = 1;
-        //     }
-        //     else if (distance > ULTRASONIC_STOP_DIST && distance <= ULTRASONIC_SLOW_DIST)
-        //     {
-        //         ultra_slow = 1;
-        //     }
-        // }
+/**
+ * @brief  ?????GPIO
+ */
+void GPIO_Init_All(void)
+{
+    // ???????IRSensor_Init????
+    // ??????????Init??????
+    // ?????????
+}
 
-        // if (ultra_stop)
-        // {
-        //     Motor_Stop();
-        //     Delay_ms(200);
-        //     Motor_MoveBack(10);
-        //     Delay_ms(100);
-        // }
-        // else if (ultra_slow && red1 && red2 && !red3 && !red4 && !red5 && !red6)
-        // {
-        //     Motor_Stop();
-        //     Delay_ms(200);
-        //     Motor_MoveBack(3);
-        //     Motor_TurnRight90();
-        //     Motor_MoveForward(10, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnRight90();
-        //     Motor_ResumeNormal();
-        // }
-        // else if (ultra_slow && red1 && !red2 && !red3 && !red4 && !red5 && !red6)
-        // {
-        //     Motor_MoveBack(3);
-        //     Motor_TurnRight90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnLeft90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnLeft90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnRight90();
-        //     Motor_ResumeNormal();
-        // }
-        // else if (ultra_slow && !red1 && red2 && !red3 && !red4 && !red5 && !red6)
-        // {
-        //     Motor_Stop();
-        //     Delay_ms(200);
-        //     Motor_MoveBack(3);
-        //     Motor_TurnLeft90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnRight90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnRight90();
-        //     Motor_MoveForward(14, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
-        //     Motor_TurnLeft90();
-        //     Motor_ResumeNormal();
-        // }
-        // else if (!red1 && !red2 && (red3 || red5))
-        // {
-        //     float left_speed = NORMAL_LEFT_SPEED;
-        //     float right_speed = NORMAL_RIGHT_SPEED;
+/**
+ * @brief  ???????????
+ * @retval 1:????, 0:?????
+ */
+uint8_t Check_Ultrasonic_Stop(void)
+{
+    static uint8_t last_valid = 0;
+    static float last_distance = 0.0f;
+    
+    // ???????
+    float distance = Test_Distance();
+    
+    // ???????
+    if (distance <= 0)
+    {
+        ultrasonic_invalid_count++;
+        
+        // ????????
+        if (ultrasonic_invalid_count >= ULTRASONIC_INVALID_CNT)
+        {
+            ultrasonic_invalid_count = ULTRASONIC_INVALID_CNT;
+            
+            // ?????????,???
+            if (last_valid && last_distance > 0)
+            {
+                distance = last_distance;
+            }
+            else
+            {
+                return 0; // ??????,?????
+            }
+        }
+        else
+        {
+            return 0; // ????????,?????
+        }
+    }
+    else
+    {
+        // ????,?????
+        ultrasonic_invalid_count = 0;
+        last_distance = distance;
+        last_valid = 1;
+    }
+    
+    // ????????
+    if (distance <= ULTRASONIC_STOP_DIST)
+    {
+        // ??????,????
+        Motor_Stop();
+        return 1; // ??????
+    }
+    
+    return 0; // ?????
+}
 
-        //     if (red3 && red5)
-        //         left_speed += 10;
-        //     else if (red3)
-        //         right_speed += 10;
-        //     else if (red5)
-        //         left_speed += 10;
+/**
+ * @brief  ???????????
+ */
+void Read_IR_Sensors(void)
+{
+    red1_state = IRSensor_Detect(IR_PORT, RED1_PIN);
+    red2_state = IRSensor_Detect(IR_PORT, RED2_PIN);
+    red5_state = IRSensor_Detect(IR_PORT, RED5_PIN);
+    red6_state = IRSensor_Detect(IR_PORT, RED6_PIN);
+}
 
-        //     Motor_Forward(left_speed, right_speed);
-        // }
-        // else if (!red1 && !red2 && (red4 || red6))
-        // {
-        //     float left_speed = NORMAL_LEFT_SPEED;
-        //     float right_speed = NORMAL_RIGHT_SPEED;
+/**
+ * @brief  ????1-3?????
+ */
+void Execute_Case1_3(void)
+{
+    // ??200ms
+    Delay_ms(200);
+    
+    // ??90?
+    Motor_TurnLeft90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnLeft90();
+}
 
-        //     if (red4 && red6)
-        //         right_speed += 10;
-        //     else if (red4)
-        //         left_speed += 10;
-        //     else if (red6)
-        //         right_speed += 10;
+/**
+ * @brief  ????4???
+ */
+void Execute_Case4(void)
+{
+    // ??3cm
+    Motor_MoveBack(3.0f);
+    
+    // ??90?
+    Motor_TurnRight90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnLeft90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnLeft90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnRight90();
+}
 
-        //     Motor_Forward(left_speed, right_speed);
-        // }
-        // else if (ultra_slow && !red1 && !red2 && !red3 && !red4 && !red5 && !red6)
-        // {
-        //     Motor_Stop();
-        //     Delay_ms(200);
-        //     Motor_MoveBack(10);
-        //     Delay_ms(100);
-        // }
-        // else
-        // {
-        //     Motor_ResumeNormal();
-        // }
+/**
+ * @brief  ????5???
+ */
+void Execute_Case5(void)
+{
+    // ??3cm
+    Motor_MoveBack(3.0f);
+    
+    // ??90?
+    Motor_TurnLeft90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnRight90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnRight90();
+    
+    // ??10cm
+    Motor_MoveForward(10.0f, NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
+    
+    // ??90?
+    Motor_TurnLeft90();
+}
 
-        Motor_ResumeNormal();
-
-        PWM_Task();
-        Delay_us(10);
+/**
+ * @brief  ??????(??6)
+ */
+void Adjust_Wall_Distance(void)
+{
+    // (1)?RED5??:?????????(????)
+    if (red5_state == IR_HAVE_OBSTACLE && red6_state == IR_NO_OBSTACLE)
+    {
+        float left_speed = NORMAL_LEFT_SPEED + WALL_ADJUST_SPEED;
+        if (left_speed > 99.0f) left_speed = 99.0f;
+        Motor_Forward(left_speed, NORMAL_RIGHT_SPEED);
+    }
+    // (2)?RED6??:?????????(????)
+    else if (red5_state == IR_NO_OBSTACLE && red6_state == IR_HAVE_OBSTACLE)
+    {
+        float right_speed = NORMAL_RIGHT_SPEED + WALL_ADJUST_SPEED;
+        if (right_speed > 99.0f) right_speed = 99.0f;
+        Motor_Forward(NORMAL_LEFT_SPEED, right_speed);
+    }
+    // ????:????
+    else
+    {
+        Motor_Forward(NORMAL_LEFT_SPEED, NORMAL_RIGHT_SPEED);
     }
 }

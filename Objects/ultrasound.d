@@ -1,5 +1,4 @@
 .\objects\ultrasound.o: Ultrasound.c
-.\objects\ultrasound.o: Ultrasound.h
 .\objects\ultrasound.o: .\start\stm32f10x.h
 .\objects\ultrasound.o: .\start\core_cm3.h
 .\objects\ultrasound.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
@@ -29,4 +28,4 @@
 .\objects\ultrasound.o: .\library\stm32f10x_usart.h
 .\objects\ultrasound.o: .\library\stm32f10x_wwdg.h
 .\objects\ultrasound.o: .\library\misc.h
-.\objects\ultrasound.o: delay.h
+.\objects\ultrasound.o: Delay.h
